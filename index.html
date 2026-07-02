@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procurement Intelligence | Microsoft Capstone</title>
+<meta name="description" content="TED Procurement Intelligence: turning Europe's public procurement feed into a daily commercial advantage for Microsoft.">
+<link rel="icon" type="image/png" href="assets/ms_logo.png">
+<style>
+  :root {
+    --ms-blue:   #0078D4;
+    --ms-blue-dark: #005A9E;
+    --sq-red:    #F25022;
+    --sq-green:  #7FBA00;
+    --sq-blue:   #00A4EF;
+    --sq-yellow: #FFB900;
+    --ink:       #201F1E;
+    --ink-soft:  #484644;
+    --ink-faint: #797775;
+    --paper:     #FFFFFF;
+    --paper-alt: #F5F6F8;
+    --line:      #E1DFDD;
+    --dark-bg:   #14131C;
+    --dark-card: #1E1D29;
+    --dark-line: rgba(255,255,255,0.10);
+    --dark-text: #F3F2F1;
+    --dark-mute: #A19F9D;
+    --radius: 14px;
+    --shadow: 0 6px 24px rgba(16, 24, 40, 0.10);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #0B0A12; }
+  body {
+    font-family: "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--ms-blue); text-decoration: none; }
+
+  /* ===== Stage scaling: slides designed at 1280x720, scaled to fit ===== */
+  #stage {
+    position: absolute; top: 50%; left: 50%;
+    width: 1280px; height: 720px;
+    transform-origin: center center;
+  }
+
+  /* ===== Slides ===== */
+  .slide {
+    position: absolute; inset: 0;
+    background: var(--paper);
+    padding: 58px 72px;
+    display: flex; flex-direction: column; justify-content: center;
+    opacity: 0; visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity .45s ease, transform .45s ease, visibility .45s;
+    overflow: hidden;
+    border-radius: 6px;
+  }
+  .slide.active { opacity: 1; visibility: visible; transform: translateY(0); z-index: 2; }
+  .slide.dark { background: var(--dark-bg); color: var(--dark-text); }
+  .slide.dark .eyebrow { color: var(--sq-blue); }
+  .slide.dark h2 { color: var(--dark-text); }
+
+  /* staged entrance animation for elements */
+  .slide [data-anim] { opacity: 0; transform: translateY(16px); }
+  .slide.active [data-anim] { animation: rise .6s cubic-bezier(.2,.7,.3,1) forwards; }
+  .slide.active [data-anim="1"] { animation-delay: .05s; }
+  .slide.active [data-anim="2"] { animation-delay: .18s; }
+  .slide.active [data-anim="3"] { animation-delay: .31s; }
+  .slide.active [data-anim="4"] { animation-delay: .44s; }
+  .slide.active [data-anim="5"] { animation-delay: .57s; }
+  .slide.active [data-anim="6"] { animation-delay: .70s; }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+  .eyebrow {
+    font-size: 13px; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ms-blue); margin-bottom: 10px;
+  }
+  h2 { font-size: 40px; font-weight: 700; line-height: 1.12; letter-spacing: -0.01em; }
+  .lede { font-size: 17px; color: var(--ink-soft); margin-top: 10px; max-width: 860px; line-height: 1.5; }
+  .dark .lede { color: var(--dark-mute); }
+
+  /* ===== Microsoft logo ===== */
+  .mslogo { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 2px; }
+  .mslogo span { display: block; }
+  .mslogo span:nth-child(1){ background: var(--sq-red); }
+  .mslogo span:nth-child(2){ background: var(--sq-green); }
+  .mslogo span:nth-child(3){ background: var(--sq-blue); }
+  .mslogo span:nth-child(4){ background: var(--sq-yellow); }
+
+  /* ===== Title slide ===== */
+  #s1 { display: flex; flex-direction: column; justify-content: center; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .34; pointer-events: none; }
+  .orb.o1 { width: 480px; height: 480px; background: #0078D4; top: -160px; right: -120px; animation: drift 14s ease-in-out infinite alternate; }
+  .orb.o2 { width: 360px; height: 360px; background: #7FBA00; bottom: -160px; left: -80px; animation: drift 17s ease-in-out infinite alternate-reverse; }
+  .orb.o3 { width: 260px; height: 260px; background: #FFB900; bottom: 60px; right: 240px; opacity: .18; animation: drift 20s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(-50px, 40px) scale(1.12); } }
+
+  .brandline { display: flex; align-items: center; gap: 14px; margin-bottom: 34px; }
+  .brandline .mslogo { width: 34px; height: 34px; }
+  .brandline .name { font-size: 24px; font-weight: 600; color: var(--dark-text); letter-spacing: -0.01em; }
+  .brandline .divider { width: 1px; height: 26px; background: var(--dark-line); }
+  .brandline .product { font-size: 16px; color: var(--dark-mute); font-weight: 400; }
+
+  #s1 h1 { font-size: 66px; font-weight: 700; line-height: 1.06; letter-spacing: -0.02em; max-width: 950px; }
+  #s1 h1 .grad {
+    background: linear-gradient(92deg, #4FC3F7 0%, #0078D4 45%, #7FBA00 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #s1 .sub { font-size: 21px; color: var(--dark-mute); margin-top: 22px; max-width: 760px; line-height: 1.5; }
+  #s1 .meta { position: absolute; bottom: 54px; left: 72px; right: 72px; display: flex; justify-content: space-between; align-items: flex-end; }
+  #s1 .team { font-size: 14.5px; color: var(--dark-mute); line-height: 1.7; }
+  #s1 .team b { color: var(--dark-text); font-weight: 600; }
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--dark-line); border-radius: 999px;
+    padding: 8px 16px; font-size: 13.5px; color: var(--dark-text); background: rgba(255,255,255,.04);
+  }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #6BB700; box-shadow: 0 0 0 0 rgba(107,183,0,.6); animation: ping 1.8s infinite; }
+  @keyframes ping { 70% { box-shadow: 0 0 0 9px rgba(107,183,0,0); } 100% { box-shadow: 0 0 0 0 rgba(107,183,0,0); } }
+
+  /* ===== Generic cards ===== */
+  .grid { display: grid; gap: 18px; margin-top: 30px; }
+  .card {
+    background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .dark .card { background: var(--dark-card); border-color: var(--dark-line); box-shadow: none; }
+  .card .k-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 8px; }
+  .card h4 { font-size: 16.5px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; }
+  .card p { font-size: 13.8px; color: var(--ink-soft); line-height: 1.5; }
+  .dark .card p { color: var(--dark-mute); }
+
+  .stat { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat-label { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-faint); margin-bottom: 10px; }
+  .dark .stat-label { color: var(--dark-mute); }
+
+  /* ===== Problem slide ===== */
+  #s2 .grid { grid-template-columns: repeat(3, 1fr); }
+  .pain { margin-top: 26px; display: grid; gap: 12px; }
+  .pain .row { display: flex; gap: 14px; align-items: flex-start; background: var(--paper-alt); border-radius: 12px; padding: 14px 18px; }
+  .pain .row .ico { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #fff; }
+  .pain .row b { font-size: 15px; }
+  .pain .row span { display: block; font-size: 13.5px; color: var(--ink-soft); margin-top: 2px; line-height: 1.45; }
+
+  /* ===== Solution pillars ===== */
+  #s3 .grid { grid-template-columns: repeat(4, 1fr); }
+  .pillar-num { font-size: 13px; font-weight: 700; color: var(--ms-blue); margin-bottom: 8px; }
+  .automation-note {
+    margin-top: 26px; display: flex; align-items: center; gap: 14px;
+    background: #EFF6FC; border: 1px solid #C7E0F4; border-radius: 12px; padding: 16px 20px;
+    font-size: 14.5px; color: var(--ink);
+  }
+
+  /* ===== Architecture ===== */
+  .pipeline { display: flex; align-items: stretch; gap: 0; margin-top: 34px; }
+  .stage-node { flex: 1; position: relative; }
+  .stage-card {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 16px 16px;
+    background: var(--paper); box-shadow: var(--shadow); height: 100%;
+  }
+  .stage-card .tier { font-size: 11.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+  .stage-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+  .stage-card p { font-size: 12.6px; color: var(--ink-soft); line-height: 1.45; }
+  .connector { width: 44px; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+  .connector::before { content: ""; position: absolute; left: 4px; right: 4px; height: 2px; background: var(--line); top: 50%; }
+  .flow-dot {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%; background: var(--ms-blue);
+    top: calc(50% - 4.5px); left: 0; animation: flow 2.2s linear infinite;
+  }
+  @keyframes flow { 0% { left: 2px; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
+  .job-strip {
+    margin-top: 30px; display: flex; align-items: center; gap: 18px;
+    border: 1px solid var(--line); border-radius: 12px; padding: 15px 22px; background: var(--paper-alt);
+  }
+  .job-strip .clock { font-size: 24px; }
+  .job-strip .tasks { display: flex; gap: 8px; align-items: center; font-size: 13.5px; font-weight: 600; flex-wrap: wrap; }
+  .task-chip { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; }
+  .job-strip .arrow { color: var(--ink-faint); }
+
+  /* ===== Data slide ===== */
+  #s5 .grid { grid-template-columns: repeat(3, 1fr); }
+  .notice-tag { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; padding: 4px 12px; border-radius: 999px; margin-bottom: 12px; }
+  .data-facts { margin-top: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .fact { display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+  .fact .check { color: var(--sq-green); font-weight: 700; font-size: 16px; }
+  .fact b { color: var(--ink); }
+
+  /* ===== Decisions ===== */
+  .decision { display: grid; grid-template-columns: 170px 1fr 1fr; gap: 0; align-items: stretch; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .decision + .decision { margin-top: 14px; }
+  .decision .dim { background: var(--paper-alt); padding: 16px 18px; font-weight: 700; font-size: 14.5px; display: flex; align-items: center; }
+  .decision .pick { padding: 16px 18px; border-left: 1px solid var(--line); }
+  .decision .pick .tag { font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 4px; }
+  .decision .pick.won .tag { color: var(--sq-green); }
+  .decision .pick.lost .tag { color: var(--ink-faint); }
+  .decision .pick b { font-size: 14.5px; display: block; margin-bottom: 3px; }
+  .decision .pick span { font-size: 12.8px; color: var(--ink-soft); line-height: 1.45; }
+  .decision .pick.lost b, .decision .pick.lost span { color: var(--ink-faint); }
+
+  /* ===== ML slide ===== */
+  .formula {
+    margin-top: 26px; display: flex; align-items: center; justify-content: center; gap: 14px;
+    flex-wrap: nowrap;
+  }
+  .f-term { text-align: center; border-radius: var(--radius); padding: 18px 20px; border: 1px solid var(--line); background: var(--paper); box-shadow: var(--shadow); min-width: 150px; }
+  .f-term .w { font-size: 30px; font-weight: 700; }
+  .f-term .t { font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.35; }
+  .f-op { font-size: 26px; font-weight: 600; color: var(--ink-faint); }
+  .f-result { background: var(--ms-blue); color: #fff; border: none; }
+  .f-result .t { color: rgba(255,255,255,.85); }
+  .ml-notes { margin-top: 26px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  /* ===== Product grid ===== */
+  #s8 .grid { grid-template-columns: repeat(4, 1fr); margin-top: 26px; }
+  .page-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; background: var(--paper); box-shadow: var(--shadow); }
+  .page-card .q { font-size: 12.5px; color: var(--ms-blue); font-weight: 600; font-style: italic; margin-top: 6px; }
+  .page-card h4 { font-size: 15px; }
+  .page-card p { font-size: 12.6px; }
+
+  /* ===== Screenshot feature slides ===== */
+  .feature { display: grid; grid-template-columns: 420px 1fr; gap: 36px; align-items: center; }
+  #s10 .feature { grid-template-columns: 1fr 470px; }
+  .feature .copy { padding-top: 6px; }
+  .browser { border-radius: 12px; overflow: hidden; box-shadow: 0 18px 50px rgba(10,15,30,.22); border: 1px solid var(--line); background: #fff; }
+  .browser .bar { height: 34px; background: #F3F2F1; display: flex; align-items: center; gap: 6px; padding: 0 14px; border-bottom: 1px solid var(--line); }
+  .browser .bar i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+  .browser .bar i:nth-child(1){ background: #FF5F57; } .browser .bar i:nth-child(2){ background: #FEBC2E; } .browser .bar i:nth-child(3){ background: #28C840; }
+  .browser .bar .url { margin-left: 10px; background: #fff; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; color: var(--ink-faint); padding: 3px 12px; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .browser img { display: block; width: 100%; height: auto; }
+  .kpi-row { display: flex; gap: 12px; margin-top: 20px; }
+  .kpi-mini { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; flex: 1; background: var(--paper); }
+  .kpi-mini .v { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+  .kpi-mini .l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-faint); margin-top: 2px; }
+  .bullet-list { margin-top: 18px; display: grid; gap: 10px; }
+  .bullet-list .b { display: flex; gap: 10px; font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
+  .bullet-list .b::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--ms-blue); flex-shrink: 0; margin-top: 6px; }
+  .bullet-list .b:nth-child(2)::before { background: var(--sq-green); }
+  .bullet-list .b:nth-child(3)::before { background: var(--sq-yellow); }
+  .bullet-list .b:nth-child(4)::before { background: var(--sq-red); }
+  .bullet-list b { color: var(--ink); }
+
+  /* ===== Copilot slide ===== */
+  .copilot-wrap { display: grid; grid-template-columns: 1fr 430px; gap: 36px; margin-top: 24px; align-items: start; }
+  .chat { border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); box-shadow: var(--shadow); overflow: hidden; }
+  .chat .chat-head { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-bottom: 1px solid var(--line); background: var(--paper-alt); font-size: 13.5px; font-weight: 700; }
+  .chat .chat-head .mslogo { width: 16px; height: 16px; }
+  .chat-body { padding: 18px; display: grid; gap: 12px; }
+  .msg { max-width: 86%; border-radius: 14px; padding: 11px 16px; font-size: 13.6px; line-height: 1.5; opacity: 0; transform: translateY(10px); }
+  .slide.active .msg { animation: rise .5s ease forwards; }
+  .slide.active .msg.user { animation-delay: .3s; }
+  .slide.active .msg.tool { animation-delay: 1.0s; }
+  .slide.active .msg.bot  { animation-delay: 1.7s; }
+  .msg.user { background: var(--ms-blue); color: #fff; justify-self: end; border-bottom-right-radius: 4px; }
+  .msg.tool { background: #FFF8E6; border: 1px dashed #E8C766; color: #6b5518; font-family: "Cascadia Code", ui-monospace, Menlo, monospace; font-size: 12px; justify-self: start; }
+  .msg.bot { background: var(--paper-alt); border: 1px solid var(--line); justify-self: start; border-bottom-left-radius: 4px; }
+  .msg.bot table { border-collapse: collapse; margin-top: 8px; font-size: 12.4px; }
+  .msg.bot td, .msg.bot th { padding: 4px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+  .msg.bot th { color: var(--ink-faint); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .guard { display: grid; gap: 12px; }
+  .guard .card { padding: 16px 20px; }
+
+  /* ===== Demo slide ===== */
+  #s12 { display: flex; flex-direction: column; }
+  .demo-hero { display: flex; align-items: center; gap: 44px; margin-top: 34px; }
+  .demo-cta {
+    display: inline-flex; flex-direction: column; gap: 6px;
+    background: linear-gradient(135deg, #0078D4, #005A9E);
+    color: #fff; border-radius: 16px; padding: 26px 34px; font-size: 22px; font-weight: 700;
+    box-shadow: 0 14px 44px rgba(0,120,212,.42); transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .demo-cta small { font-size: 13px; font-weight: 400; opacity: .85; }
+  .demo-cta:hover { transform: translateY(-3px); box-shadow: 0 20px 54px rgba(0,120,212,.55); }
+  .qr-box { background: #fff; border-radius: 14px; padding: 12px; width: 148px; height: 148px; flex-shrink: 0; }
+  .qr-box svg { width: 100%; height: 100%; }
+  .demo-steps { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .demo-step { border: 1px solid var(--dark-line); border-radius: var(--radius); padding: 18px 20px; background: var(--dark-card); }
+  .demo-step .n { width: 28px; height: 28px; border-radius: 50%; background: var(--ms-blue); color: #fff; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .demo-step h4 { font-size: 15.5px; margin-bottom: 5px; }
+  .demo-step p { font-size: 12.8px; color: var(--dark-mute); line-height: 1.5; }
+
+  /* ===== Results counters ===== */
+  #s13 .grid { grid-template-columns: repeat(3, 1fr); margin-top: 30px; }
+  .counter-card { text-align: left; }
+  .counter-card .stat { color: var(--ms-blue); }
+  .counter-card:nth-child(2) .stat { color: var(--sq-green); }
+  .counter-card:nth-child(3) .stat { color: var(--sq-yellow); }
+  .counter-card:nth-child(4) .stat { color: var(--sq-red); }
+  .counter-card:nth-child(5) .stat { color: var(--ms-blue); }
+  .counter-card:nth-child(6) .stat { color: var(--sq-green); }
+  .counter-card p { margin-top: 8px; }
+
+  /* ===== Critical analysis ===== */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 28px; }
+  .col-head { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .col-head .chip { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+  .limit-item, .road-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; background: var(--paper); margin-bottom: 12px; }
+  .limit-item b, .road-item b { font-size: 14px; display: block; margin-bottom: 3px; }
+  .limit-item span, .road-item span { font-size: 12.8px; color: var(--ink-soft); line-height: 1.45; }
+  .road-item { background: #F3FAEB; border-color: #D5E8C2; }
+
+  /* ===== Closing ===== */
+  #s15 { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  #s15 h2 { font-size: 52px; max-width: 900px; line-height: 1.15; }
+  #s15 .links { display: flex; gap: 26px; margin-top: 40px; align-items: center; }
+  .link-card { display: flex; align-items: center; gap: 16px; border: 1px solid var(--dark-line); background: var(--dark-card); border-radius: 14px; padding: 16px 22px; }
+  .link-card .qr-box { width: 84px; height: 84px; padding: 7px; border-radius: 10px; }
+  .link-card b { display: block; font-size: 14.5px; color: var(--dark-text); }
+  .link-card span { font-size: 12.5px; color: var(--dark-mute); }
+
+  /* ===== Chrome: progress, counter, arrows, help ===== */
+  #progress { position: fixed; top: 0; left: 0; height: 4px; z-index: 50; width: 0%;
+    background: linear-gradient(90deg, var(--sq-red) 0 25%, var(--sq-green) 25% 50%, var(--sq-blue) 50% 75%, var(--sq-yellow) 75% 100%);
+    background-size: 100vw 4px; transition: width .35s ease; }
+  #hud { position: fixed; bottom: 18px; right: 22px; z-index: 50; display: flex; gap: 10px; align-items: center; }
+  #hud .count { font-size: 12.5px; color: rgba(255,255,255,.65); font-variant-numeric: tabular-nums; margin-right: 4px; }
+  #hud button {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.07); color: #fff; font-size: 16px; cursor: pointer; backdrop-filter: blur(8px);
+    transition: background .15s ease;
+  }
+  #hud button:hover { background: rgba(255,255,255,.18); }
+  #hint { position: fixed; bottom: 18px; left: 22px; z-index: 50; font-size: 12px; color: rgba(255,255,255,.45); }
+  #hint kbd { border: 1px solid rgba(255,255,255,.25); border-radius: 4px; padding: 1px 6px; font-family: inherit; font-size: 11px; }
+
+  /* ===== Overview mode ===== */
+  body.overview #stage { pointer-events: none; }
+  #grid-overlay {
+    position: fixed; inset: 0; z-index: 60; background: rgba(8,8,14,.94); backdrop-filter: blur(10px);
+    display: none; padding: 40px; overflow-y: auto;
+  }
+  body.overview #grid-overlay { display: block; }
+  #grid-overlay .g { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; max-width: 1400px; margin: 0 auto; }
+  #grid-overlay .thumb {
+    aspect-ratio: 16/9; border-radius: 10px; border: 2px solid rgba(255,255,255,.14); cursor: pointer;
+    background: #fff; overflow: hidden; position: relative; transition: transform .15s ease, border-color .15s ease;
+  }
+  #grid-overlay .thumb:hover { transform: scale(1.04); border-color: var(--ms-blue); }
+  #grid-overlay .thumb .mini { position: absolute; top: 0; left: 0; width: 1280px; height: 720px; transform: scale(0.2); transform-origin: top left; pointer-events: none; }
+  #grid-overlay .thumb .idx { position: absolute; bottom: 6px; right: 8px; z-index: 5; font-size: 11px; font-weight: 700; color: #fff; background: rgba(0,0,0,.55); border-radius: 6px; padding: 2px 8px; }
+
+  .topstrip { position: absolute; top: 0; left: 0; right: 0; height: 5px; display: flex; }
+  .topstrip i { flex: 1; }
+  .topstrip i:nth-child(1){ background: var(--sq-red); } .topstrip i:nth-child(2){ background: var(--sq-green); }
+  .topstrip i:nth-child(3){ background: var(--sq-blue); } .topstrip i:nth-child(4){ background: var(--sq-yellow); }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="stage">
+
+  <!-- 1 ▸ TITLE -->
+  <section class="slide dark" id="s1">
+    <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+    <div class="brandline" data-anim="1">
+      <span class="mslogo"><span></span><span></span><span></span><span></span></span>
+      <span class="name">Microsoft</span>
+      <span class="divider"></span>
+      <span class="product">Procurement Intelligence</span>
+    </div>
+    <h1 data-anim="2">Every open EU tender, <br><span class="grad">ranked before breakfast.</span></h1>
+    <p class="sub" data-anim="3">An end to end intelligence platform that turns the EU's public procurement feed into a daily commercial advantage for Microsoft. Live pipeline, live model, live dashboard.</p>
+    <div class="meta">
+      <div class="team" data-anim="4">
+        <b>Corporate Capstone, Group Microsoft 3</b> · IE University, MBDS<br>
+        Bojana Blincevic · Nicolás Beard · Omar Ajlouni · Ricardo Liévano · Shadi Hamarneh
+      </div>
+      <div class="live-pill" data-anim="5"><span class="live-dot"></span> System live · refreshed daily at 08:00 UTC</div>
+    </div>
+  </section>
+
+  <!-- 2 ▸ PROBLEM -->
+  <section class="slide" id="s2">
+    <div class="eyebrow" data-anim="1">The problem</div>
+    <h2 data-anim="1">Winnable tenders are found too late, or not at all</h2>
+    <p class="lede" data-anim="2">Every public IT contract in the EU is announced in the open, on TED. In the last 30 days alone, 83,659 notices were published. The signal is public. The problem is scale and noise.</p>
+    <div class="grid" data-anim="3">
+      <div class="card"><div class="stat-label">Published on TED</div><div class="stat">~2,700<span style="font-size:20px; color:var(--ink-faint); font-weight:600;"> notices/day</span></div><p style="margin-top:8px;">Peaking above 4,000 on busy days, across every sector and every member state.</p></div>
+      <div class="card"><div class="stat-label">Format</div><div class="stat" style="font-size:34px; line-height:1.2;">Deeply nested XML</div><p style="margin-top:8px;">eForms notices with multi-step reference chains. Not readable by humans at scale.</p></div>
+      <div class="card"><div class="stat-label">Today's process</div><div class="stat" style="font-size:34px; line-height:1.2;">Manual monitoring</div><p style="margin-top:8px;">Analysts sample the feed by hand. Coverage is partial and timing is reactive.</p></div>
+    </div>
+    <div class="pain" data-anim="4">
+      <div class="row"><div class="ico" style="background:var(--sq-red);">✕</div><div><b>No filter.</b><span>IT relevant tenders (CPV 30, 48, 72) are buried in an all sector feed.</span></div></div>
+      <div class="row"><div class="ico" style="background:var(--sq-yellow);">≈</div><div><b>No ranking.</b><span>No systematic way to compare tenders on value, competition, and fit to Microsoft's portfolio.</span></div></div>
+      <div class="row"><div class="ico" style="background:var(--ms-blue);">◷</div><div><b>No early warning.</b><span>Buyer intent signals in Prior Information Notices go undetected, so relationship building starts too late.</span></div></div>
+    </div>
+  </section>
+
+  <!-- 3 ▸ SOLUTION -->
+  <section class="slide" id="s3">
+    <div class="eyebrow" data-anim="1">Our solution</div>
+    <h2 data-anim="1">One platform, four capabilities, zero manual steps</h2>
+    <p class="lede" data-anim="2">A production data platform on Databricks that ingests, understands, and ranks the entire EU IT procurement market, then serves it to analysts through a dashboard and a conversational copilot.</p>
+    <div class="grid" data-anim="3">
+      <div class="card"><div class="pillar-num">01</div><h4>Automated pipeline</h4><p>TED eForms XML lands in a Bronze, Silver, Gold medallion architecture. Parsed with lxml, modeled with dbt, stored in Delta.</p></div>
+      <div class="card"><div class="pillar-num">02</div><h4>Opportunity ranking</h4><p>An XGBoost competition model feeds an expected value score for every open IT tender, every morning.</p></div>
+      <div class="card"><div class="pillar-num">03</div><h4>Buyer intelligence</h4><p>An affinity score for every contracting authority, plus a PIN Monitor that surfaces buying intent before tenders open.</p></div>
+      <div class="card"><div class="pillar-num">04</div><h4>Procurement Copilot</h4><p>An LLM agent that answers natural language questions, grounded exclusively in the Gold layer. It never writes SQL.</p></div>
+    </div>
+    <div class="automation-note" data-anim="4">
+      <span style="font-size:22px;">⚙️</span>
+      <span><b>Fully automated:</b> a four task Databricks job (ingest, parse, dbt, ML scoring) runs on serverless compute every morning at 08:00 UTC. No manual steps anywhere in the pipeline.</span>
+    </div>
+  </section>
+
+  <!-- 4 ▸ ARCHITECTURE -->
+  <section class="slide" id="s4">
+    <div class="eyebrow" data-anim="1">Architecture</div>
+    <h2 data-anim="1">From raw XML to ranked opportunities, every morning</h2>
+    <p class="lede" data-anim="2">A classic medallion design, chosen because it keeps raw data immutable, transformations testable, and the serving layer fast.</p>
+    <div class="pipeline" data-anim="3">
+      <div class="stage-node"><div class="stage-card">
+        <div class="tier" style="color:var(--ink-faint);">Source</div><h4>TED eForms XML</h4>
+        <p>Daily packages from all EU member states. Raw files kept immutably, so any run can be replayed.</p>
+      </div></div>
+      <div class="connector"><span class="flow-dot"></span></div>
+      <div class="stage-node"><div class="stage-card" style="border-top: 3px solid #B8860B;">
+        <div class="tier" style="color:#B8860B;">Bronze</div><h4>Parsed notices</h4>
+        <p>lxml extracts notices, lots, award criteria, and organizations into Delta tables. Checkpointed and incremental.</p>
+      </div></div>
+      <div class="connector"><span class="flow-dot" style="animation-delay:.55s;"></span></div>
+      <div class="stage-node"><div class="stage-card" style="border-top: 3px solid #8A8886;">
+        <div class="tier" style="color:#605E5C;">Silver</div><h4>Clean, deduplicated lots</h4>
+        <p>dbt models resolve re-published notices with two layer dedup and enrich lots with CPV reference data.</p>
+      </div></div>
+      <div class="connector"><span class="flow-dot" style="animation-delay:1.1s;"></span></div>
+      <div class="stage-node"><div class="stage-card" style="border-top: 3px solid var(--sq-yellow);">
+        <div class="tier" style="color:#C19700;">Gold</div><h4>KPIs, IT lots, ML scores</h4>
+        <p>Serving tables for the dashboard, the copilot tools, and the daily scoring job. One consistent source.</p>
+      </div></div>
+      <div class="connector"><span class="flow-dot" style="animation-delay:1.65s;"></span></div>
+      <div class="stage-node"><div class="stage-card" style="border-top: 3px solid var(--ms-blue);">
+        <div class="tier" style="color:var(--ms-blue);">Users</div><h4>Dashboard + Copilot</h4>
+        <p>Seven page Streamlit app and a grounded LLM agent, both reading the same Gold tables.</p>
+      </div></div>
+    </div>
+    <div class="job-strip" data-anim="4">
+      <span class="clock">🕗</span>
+      <div>
+        <b style="font-size:14.5px;">One Databricks job, four tasks, serverless compute</b>
+        <div class="tasks" style="margin-top:8px;">
+          <span class="task-chip">1 · Ingest</span><span class="arrow">→</span>
+          <span class="task-chip">2 · Parse to Bronze</span><span class="arrow">→</span>
+          <span class="task-chip">3 · dbt to Silver/Gold</span><span class="arrow">→</span>
+          <span class="task-chip">4 · ML scoring</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 ▸ DATA -->
+  <section class="slide" id="s5">
+    <div class="eyebrow" data-anim="1">The data</div>
+    <h2 data-anim="1">TED eForms: one of the richest public procurement datasets in the world</h2>
+    <div class="grid" data-anim="2">
+      <div class="card">
+        <span class="notice-tag" style="background:#DEECF9; color:var(--ms-blue-dark);">CN · Contract Notices</span>
+        <h4>Open opportunities</h4>
+        <p>The tenders Microsoft partners can still bid on. These feed the Opportunity Radar.</p>
+      </div>
+      <div class="card">
+        <span class="notice-tag" style="background:#E7F2D9; color:#4F7A0A;">CAN · Award Notices</span>
+        <h4>Outcomes, including bid counts</h4>
+        <p>Who won, at what value, against how many bidders. The number of bids is our ML training signal.</p>
+      </div>
+      <div class="card">
+        <span class="notice-tag" style="background:#FFF4CE; color:#8A6A00;">PIN · Prior Information</span>
+        <h4>Early intent</h4>
+        <p>Buyers announcing what they plan to procure, months ahead. The earliest signal in the market.</p>
+      </div>
+    </div>
+    <div class="data-facts" data-anim="3">
+      <div class="fact"><span class="check">✓</span><span><b>Scoped to IT:</b> CPV divisions 30 (hardware), 48 (software), and 72 (IT services), with four entities parsed per notice: notices, lots, award criteria, organizations.</span></div>
+      <div class="fact"><span class="check">✓</span><span><b>Incremental and idempotent:</b> each daily run parses only new files, checkpointed on source file. Raw XML is immutable, so parsing can be replayed at any time.</span></div>
+      <div class="fact"><span class="check">✓</span><span><b>Award chain resolved:</b> we walk the multi-step reference chain from lot to tender to winning supplier, and a curated CPV seed table labels every lot.</span></div>
+    </div>
+  </section>
+
+  <!-- 6 ▸ DESIGN DECISIONS -->
+  <section class="slide" id="s6">
+    <div class="eyebrow" data-anim="1">Design decisions</div>
+    <h2 data-anim="1">Every major choice was made against a considered alternative</h2>
+    <div style="margin-top:26px;">
+      <div class="decision" data-anim="2">
+        <div class="dim">Storage &amp; compute</div>
+        <div class="pick won"><div class="tag">Chosen</div><b>Databricks + Delta + dbt</b><span>The most mature ecosystem for medallion, dbt, and ML in one place. The design ports to Fabric later.</span></div>
+        <div class="pick lost"><div class="tag">Considered</div><b>Azure Synapse / MS Fabric</b><span>Strong strategic fit, but a less mature dbt and ML workflow for a five person capstone timeline.</span></div>
+      </div>
+      <div class="decision" data-anim="3">
+        <div class="dim">Ranking model</div>
+        <div class="pick won"><div class="tag">Chosen</div><b>XGBoost classifier</b><span>Handles high cardinality categoricals, non linear value effects, and missing data natively.</span></div>
+        <div class="pick lost"><div class="tag">Considered</div><b>Logistic regression / SVM</b><span>Simpler, but weaker on exactly the messy, mixed type features this data is full of.</span></div>
+      </div>
+      <div class="decision" data-anim="4">
+        <div class="dim">User interface</div>
+        <div class="pick won"><div class="tag">Chosen</div><b>Streamlit + embedded copilot</b><span>The only option combining an analytical dashboard and a conversational agent in one Python app.</span></div>
+        <div class="pick lost"><div class="tag">Considered</div><b>Power BI</b><span>Excellent BI, but no natural home for a custom LLM agent inside the same experience.</span></div>
+      </div>
+    </div>
+    <p class="lede" data-anim="5" style="margin-top:22px; font-size:14px;"><b>Trade-offs were accepted knowingly.</b> Streamlit gives up enterprise SSO and mobile layout, which are not critical for a focused analyst team.</p>
+  </section>
+
+  <!-- 7 ▸ ML -->
+  <section class="slide" id="s7">
+    <div class="eyebrow" data-anim="1">Machine learning</div>
+    <h2 data-anim="1">From "number of bids" to an expected value ranking</h2>
+    <p class="lede" data-anim="2">The insight: tenders that attract few bidders are more accessible. Bid counts from award notices let us learn competition patterns with zero proprietary data.</p>
+    <div class="formula" data-anim="3">
+      <div class="f-term"><div class="w" style="color:var(--ms-blue);">0.50</div><div class="t">P(low competition)<br>XGBoost, 8 features</div></div>
+      <div class="f-op">+</div>
+      <div class="f-term"><div class="w" style="color:var(--sq-green);">0.30</div><div class="t">Buyer affinity<br>to Microsoft's portfolio</div></div>
+      <div class="f-op">+</div>
+      <div class="f-term"><div class="w" style="color:var(--sq-yellow);">0.20</div><div class="t">CPV relevance<br>to Microsoft products</div></div>
+      <div class="f-op">=</div>
+      <div class="f-term f-result"><div class="w">P(win)</div><div class="t">then EV = lot value × P(win)</div></div>
+    </div>
+    <div class="ml-notes" data-anim="4">
+      <div class="card"><h4><span class="k-dot" style="background:var(--ms-blue);"></span>Trained on real outcomes</h4><p>The classifier predicts Low, Medium, or High competition from historical award notices: value, CPV, country, procedure, and buyer type.</p></div>
+      <div class="card"><h4><span class="k-dot" style="background:var(--sq-green);"></span>Affinity that decays</h4><p>Buyer affinity blends recency weighted CPV relevance (70%) with the share of open procedures (30%), on a 180 day half life. Recent behaviour counts double.</p></div>
+      <div class="card"><h4><span class="k-dot" style="background:var(--sq-yellow);"></span>Honest by design</h4><p>Scores are a systematic ranking, not calibrated win probabilities, and the dashboard says so. Microsoft's real bid history would calibrate it.</p></div>
+    </div>
+  </section>
+
+  <!-- 8 ▸ PRODUCT -->
+  <section class="slide" id="s8">
+    <div class="eyebrow" data-anim="1">The product</div>
+    <h2 data-anim="1">Seven pages, one question each</h2>
+    <div class="grid" data-anim="2">
+      <div class="page-card"><h4>Executive Overview</h4><div class="q">"What is the market?"</div><p>232,330 open tenders, 91 countries, live KPIs.</p></div>
+      <div class="page-card"><h4>Opportunity Radar</h4><div class="q">"Which tenders should we chase?"</div><p>Every open IT lot, ranked by ML score.</p></div>
+      <div class="page-card"><h4>PIN Monitor</h4><div class="q">"Who is about to buy?"</div><p>631 pre-tender signals, mapped to product lines.</p></div>
+      <div class="page-card"><h4>Buyer Intelligence</h4><div class="q">"Who buys, and how?"</div><p>Top authorities, legal types, spend patterns.</p></div>
+      <div class="page-card"><h4>Supplier &amp; Awards</h4><div class="q">"Who is winning today?"</div><p>226,002 awards and the criteria behind them.</p></div>
+      <div class="page-card"><h4>Trends &amp; Forecasts</h4><div class="q">"How is the market moving?"</div><p>Daily volume, momentum, 30 and 90 day outlook.</p></div>
+      <div class="page-card"><h4>Procurement Copilot</h4><div class="q">"Can I just ask?"</div><p>Natural language answers, grounded in Gold data.</p></div>
+      <div class="page-card" style="background:linear-gradient(135deg,#0078D4,#005A9E); border:none;"><h4 style="color:#fff;">Built for Microsoft</h4><div class="q" style="color:rgba(255,255,255,.85);">Fluent design, product line mapping</div><p style="color:rgba(255,255,255,.85);">PINs and tenders tagged Azure, Dynamics, M365, or General IT.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 ▸ RADAR FEATURE -->
+  <section class="slide" id="s9">
+    <div class="feature">
+      <div class="copy">
+        <div class="eyebrow" data-anim="1">Opportunity Radar</div>
+        <h2 data-anim="1" style="font-size:34px;">The morning answer to "what should we chase?"</h2>
+        <div class="bullet-list" data-anim="2">
+          <div class="b"><span><b>Top 500 IT lots</b> match the live filters, each with a model based opportunity score.</span></div>
+          <div class="b"><span><b>Filter in one click</b> by minimum value, country, and procurement type.</span></div>
+          <div class="b"><span><b>Value maps</b> show where the money is, by country and CPV division.</span></div>
+          <div class="b"><span><b>Transparent fallback:</b> unscored lots use a value based proxy, and the page says so.</span></div>
+        </div>
+        <div class="kpi-row" data-anim="3">
+          <div class="kpi-mini"><div class="v">500</div><div class="l">Ranked IT lots</div></div>
+          <div class="kpi-mini"><div class="v">100%</div><div class="l">Model scored</div></div>
+          <div class="kpi-mini"><div class="v">Daily</div><div class="l">Refresh</div></div>
+        </div>
+      </div>
+      <div class="browser" data-anim="2">
+        <div class="bar"><i></i><i></i><i></i><span class="url">procurement-intelligence.streamlit.app · Opportunity Radar</span></div>
+        <img src="assets/opportunity_radar.jpg" alt="Opportunity Radar page with ranked IT opportunities">
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 ▸ PIN FEATURE -->
+  <section class="slide" id="s10">
+    <div class="feature">
+      <div class="browser" data-anim="2">
+        <div class="bar"><i></i><i></i><i></i><span class="url">procurement-intelligence.streamlit.app · PIN Monitor</span></div>
+        <img src="assets/pin_monitor.jpg" alt="PIN Monitor page with pre-tender signals">
+      </div>
+      <div class="copy">
+        <div class="eyebrow" data-anim="1">PIN Monitor</div>
+        <h2 data-anim="1" style="font-size:34px;">Hear buyers before the market does</h2>
+        <div class="bullet-list" data-anim="2">
+          <div class="b"><span><b>Prior Information Notices</b> are advance signals of upcoming IT procurement, published months before tenders open.</span></div>
+          <div class="b"><span><b>High priority PINs</b> combine strong buyer affinity with contract values above €500K, ideal for proactive relationship building.</span></div>
+          <div class="b"><span><b>Mapped to Microsoft:</b> every signal is tagged Azure, Dynamics, or General IT, with a pipeline expected value.</span></div>
+        </div>
+        <div class="kpi-row" data-anim="3">
+          <div class="kpi-mini"><div class="v">631</div><div class="l">Live PINs</div></div>
+          <div class="kpi-mini"><div class="v">445</div><div class="l">High priority</div></div>
+          <div class="kpi-mini"><div class="v">€10.9B</div><div class="l">Pipeline EV</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 ▸ COPILOT -->
+  <section class="slide" id="s11">
+    <div class="eyebrow" data-anim="1">Procurement Copilot</div>
+    <h2 data-anim="1">Ask the data a question, get a grounded answer</h2>
+    <div class="copilot-wrap">
+      <div class="chat" data-anim="2">
+        <div class="chat-head">
+          <span class="mslogo"><span></span><span></span><span></span><span></span></span>
+          Procurement Copilot
+          <span style="margin-left:auto; font-weight:400; font-size:11.5px; color:var(--ink-faint);">grounded in Gold layer data</span>
+        </div>
+        <div class="chat-body">
+          <div class="msg user">Who are the top public buyers by spend?</div>
+          <div class="msg tool">→ tool call: top_buyers(limit=5) · pre-built Gold query, no free-form SQL</div>
+          <div class="msg bot">
+            The largest contracting authorities by total reported spend right now:
+            <table>
+              <tr><th>Buyer</th><th>Country</th><th>Tenders</th></tr>
+              <tr><td>AENA SME, SA</td><td>ESP</td><td>5</td></tr>
+              <tr><td>Servicio Andaluz de Salud</td><td>ESP</td><td>68</td></tr>
+              <tr><td>Viešoji įstaiga CPO LT</td><td>LTU</td><td>444</td></tr>
+            </table>
+            Every figure above comes from a Gold layer query. Want me to break one of them down?
+          </div>
+        </div>
+      </div>
+      <div class="guard">
+        <div class="card" data-anim="3"><h4><span class="k-dot" style="background:var(--ms-blue);"></span>Safety by construction</h4><p>The model chooses among nine pre-built query functions. It cannot write arbitrary SQL against the warehouse, by design.</p></div>
+        <div class="card" data-anim="4"><h4><span class="k-dot" style="background:var(--sq-green);"></span>Grounding discipline</h4><p>The system prompt forbids invented numbers. Every figure in an answer traces back to a Gold layer query result.</p></div>
+        <div class="card" data-anim="5"><h4><span class="k-dot" style="background:var(--sq-yellow);"></span>Stress tested</h4><p>Rate limits, malformed tool calls, off topic questions, and out of range years are all handled gracefully.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 ▸ LIVE DEMO -->
+  <section class="slide dark" id="s12">
+    <div class="topstrip"><i></i><i></i><i></i><i></i></div>
+    <div class="eyebrow" data-anim="1">Live demo</div>
+    <h2 data-anim="1">Enough slides. Let's open the real thing.</h2>
+    <div class="demo-hero">
+      <a class="demo-cta" data-anim="2" href="https://procurement-intelligence-8kbgrdyhqqyawctlix4uvl.streamlit.app" target="_blank" rel="noopener">
+        Launch the live dashboard ↗
+        <small>procurement-intelligence · streamlit.app · deployed and public</small>
+      </a>
+      <div class="qr-box" data-anim="3" id="qr-app"></div>
+      <div data-anim="3" style="font-size:13.5px; color:var(--dark-mute); max-width:230px; line-height:1.55;">Scan to follow along on your own device while we present.</div>
+    </div>
+    <div class="demo-steps">
+      <div class="demo-step" data-anim="4"><div class="n">1</div><h4>Executive Overview</h4><p>The whole EU market on one screen: 232,330 open tenders across 91 countries, updated this morning.</p></div>
+      <div class="demo-step" data-anim="5"><div class="n">2</div><h4>Opportunity Radar + PIN Monitor</h4><p>Filter to a country, watch the ranking reorder, then jump to the buyers who are about to publish tenders.</p></div>
+      <div class="demo-step" data-anim="6"><div class="n">3</div><h4>Procurement Copilot</h4><p>Ask "who are the top 5 buyers by spend?" and watch it call a Gold layer tool and answer with real figures.</p></div>
+    </div>
+  </section>
+
+  <!-- 13 ▸ RESULTS -->
+  <section class="slide" id="s13">
+    <div class="eyebrow" data-anim="1">Results</div>
+    <h2 data-anim="1">A working system, not a prototype</h2>
+    <p class="lede" data-anim="2">Everything below is live in the deployed product today, measured directly from the Gold layer.</p>
+    <div class="grid">
+      <div class="card counter-card" data-anim="3"><div class="stat-label">Open tenders tracked</div><div class="stat" data-count="232330">0</div><p>Every open Contract Notice in the EU, refreshed daily.</p></div>
+      <div class="card counter-card" data-anim="3"><div class="stat-label">Countries covered</div><div class="stat" data-count="91">0</div><p>All EU member states plus EEA and beyond.</p></div>
+      <div class="card counter-card" data-anim="4"><div class="stat-label">Awards analyzed</div><div class="stat" data-count="226002">0</div><p>Historical outcomes with bid counts, our training signal.</p></div>
+      <div class="card counter-card" data-anim="4"><div class="stat-label">Awarded value analyzed</div><div class="stat">€<span data-count="590">0</span>B</div><p>Contract value flowing through the awards layer.</p></div>
+      <div class="card counter-card" data-anim="5"><div class="stat-label">Notices, last 30 days</div><div class="stat" data-count="83659">0</div><p>Ingested, parsed, and scored without a single manual step.</p></div>
+      <div class="card counter-card" data-anim="5"><div class="stat-label">Pre-tender pipeline</div><div class="stat">€<span data-count="10.9" data-decimals="1">0</span>B</div><p>Expected value across 631 live PIN signals.</p></div>
+    </div>
+    <p class="lede" data-anim="6" style="margin-top:24px; font-size:14.5px;"><b>The business outcome:</b> an analyst opens one page each morning and sees every open EU IT tender ranked by expected value. A task that previously was not done at all.</p>
+  </section>
+
+  <!-- 14 ▸ CRITICAL ANALYSIS -->
+  <section class="slide" id="s14">
+    <div class="eyebrow" data-anim="1">Critical analysis</div>
+    <h2 data-anim="1">What the system is not yet, and how it gets there</h2>
+    <div class="two-col">
+      <div data-anim="2">
+        <div class="col-head"><span class="chip" style="background:#FDE7E9; color:#A4262C;">Known limitations</span></div>
+        <div class="limit-item"><b>Proxy target</b><span>Trained on market wide bid counts, not Microsoft's win/loss history. It is a ranking, not a calibrated probability.</span></div>
+        <div class="limit-item"><b>Coverage</b><span>The CPV division filter misses IT tenders filed under generic codes.</span></div>
+        <div class="limit-item"><b>Values</b><span>Non EUR lots pass through unconverted, and some lots lack values entirely, so headline sums are buyer reported and uncleaned.</span></div>
+      </div>
+      <div data-anim="3">
+        <div class="col-head"><span class="chip" style="background:#E7F2D9; color:#4F7A0A;">Roadmap</span></div>
+        <div class="road-item"><b>Calibrate with real outcomes</b><span>Record Microsoft's bid decisions against scored tenders and retrain. The architecture already accommodates this.</span></div>
+        <div class="road-item"><b>NLP relevance scorer</b><span>Score lot titles and descriptions to catch mis-classified tenders beyond CPV codes.</span></div>
+        <div class="road-item"><b>Scale up</b><span>The medallion design ports to Azure and Fabric when Microsoft standardises, with dbt models moving unchanged.</span></div>
+      </div>
+    </div>
+    <p class="lede" data-anim="4" style="margin-top:20px; font-size:14px;">We would rather show you honest limits than inflated claims. Each limitation above has a designed path to resolution.</p>
+  </section>
+
+  <!-- 15 ▸ CLOSING -->
+  <section class="slide dark" id="s15">
+    <div class="orb o1"></div><div class="orb o2"></div>
+    <div class="brandline" data-anim="1" style="margin-bottom:26px;">
+      <span class="mslogo"><span></span><span></span><span></span><span></span></span>
+      <span class="name">Microsoft</span>
+      <span class="divider"></span>
+      <span class="product">Procurement Intelligence</span>
+    </div>
+    <h2 data-anim="2">Open data in.<br>Ranked opportunities out.<br><span style="color:var(--sq-blue);">Every morning.</span></h2>
+    <p class="lede" data-anim="3" style="margin-top:20px;">A production pipeline, an ML ranking engine, a live dashboard, and a grounded AI copilot. Built end to end on public data, designed to compound with Microsoft's own.</p>
+    <div class="links">
+      <a class="link-card" data-anim="4" href="https://github.com/npbeard/procurement-intelligence" target="_blank" rel="noopener">
+        <div class="qr-box" id="qr-repo"></div>
+        <div><b>github.com/npbeard/procurement-intelligence</b><span>All code, models, and pipeline, public.</span></div>
+      </a>
+      <a class="link-card" data-anim="5" href="https://procurement-intelligence-8kbgrdyhqqyawctlix4uvl.streamlit.app" target="_blank" rel="noopener">
+        <div class="qr-box" id="qr-app2"></div>
+        <div><b>Live dashboard</b><span>Try it right now, no login needed.</span></div>
+      </a>
+      <div data-anim="6" style="font-size:14.5px; color:var(--dark-mute); line-height:1.7; margin-left:10px;">
+        <b style="color:var(--dark-text);">Thank you. Questions welcome.</b><br>
+        Bojana · Nicolás · Omar · Ricardo · Shadi
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div id="hud">
+  <span class="count" id="counter">1 / 15</span>
+  <button id="btn-prev" title="Previous (←)">‹</button>
+  <button id="btn-next" title="Next (→)">›</button>
+  <button id="btn-grid" title="Overview (O)">▦</button>
+  <button id="btn-full" title="Fullscreen (F)">⛶</button>
+</div>
+<div id="hint">Navigate with <kbd>←</kbd> <kbd>→</kbd> · <kbd>O</kbd> overview · <kbd>F</kbd> fullscreen</div>
+
+<div id="grid-overlay"><div class="g" id="grid-cells"></div></div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let idx = 0;
+
+  // deep link (#3 means slide 3)
+  const fromHash = parseInt(location.hash.replace('#',''), 10);
+  if (!isNaN(fromHash) && fromHash >= 1 && fromHash <= total) idx = fromHash - 1;
+
+  const stage = document.getElementById('stage');
+  function fit() {
+    const s = Math.min(innerWidth / 1280, innerHeight / 720) * 0.985;
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  addEventListener('resize', fit); fit();
+
+  function animateCounters(slide) {
+    slide.querySelectorAll('[data-count]').forEach(el => {
+      if (el.dataset.done) return;
+      el.dataset.done = '1';
+      const target = parseFloat(el.dataset.count);
+      const decimals = parseInt(el.dataset.decimals || '0', 10);
+      const t0 = performance.now(), dur = 1600;
+      (function tick(t) {
+        const p = Math.min((t - t0) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = (target * eased).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  }
+
+  function show(n, pushHash = true) {
+    idx = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('counter').textContent = (idx + 1) + ' / ' + total;
+    document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
+    if (pushHash) history.replaceState(null, '', '#' + (idx + 1));
+    const active = slides[idx];
+    // restart entrance animations
+    active.querySelectorAll('[data-anim], .msg').forEach(el => {
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    });
+    if (active.querySelector('[data-count]')) setTimeout(() => animateCounters(active), 350);
+  }
+
+  function next() { show(idx + 1); }
+  function prev() { show(idx - 1); }
+
+  addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); overlayOpen ? null : next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); overlayOpen ? null : prev(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(total - 1);
+    else if (e.key.toLowerCase() === 'f') toggleFull();
+    else if (e.key.toLowerCase() === 'o') toggleGrid();
+    else if (e.key === 'Escape' && overlayOpen) toggleGrid();
+  });
+
+  // touch swipe
+  let tx = null;
+  addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive: true });
+  addEventListener('touchend', e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 50) (dx < 0 ? next() : prev());
+    tx = null;
+  }, { passive: true });
+
+  document.getElementById('btn-next').onclick = next;
+  document.getElementById('btn-prev').onclick = prev;
+  document.getElementById('btn-full').onclick = toggleFull;
+  document.getElementById('btn-grid').onclick = toggleGrid;
+
+  function toggleFull() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen();
+  }
+
+  // ── overview grid ──
+  let overlayOpen = false, gridBuilt = false;
+  function toggleGrid() {
+    overlayOpen = !overlayOpen;
+    document.body.classList.toggle('overview', overlayOpen);
+    if (overlayOpen && !gridBuilt) {
+      gridBuilt = true;
+      const g = document.getElementById('grid-cells');
+      slides.forEach((s, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'thumb';
+        const mini = s.cloneNode(true);
+        mini.classList.add('active'); mini.classList.remove('slide');
+        mini.className = 'mini slide active ' + (s.classList.contains('dark') ? 'dark' : '');
+        mini.removeAttribute('id');
+        cell.appendChild(mini);
+        const tag = document.createElement('span');
+        tag.className = 'idx'; tag.textContent = i + 1;
+        cell.appendChild(tag);
+        cell.onclick = () => { toggleGrid(); show(i); };
+        g.appendChild(cell);
+      });
+    }
+  }
+
+  // ── inline QR codes (loaded from assets, duplicated where needed) ──
+  ['qr-app', 'qr-repo', 'qr-app2'].forEach(id => {
+    const box = document.getElementById(id);
+    if (!box) return;
+    const src = id === 'qr-repo' ? 'assets/qr_repo.svg' : 'assets/qr_app.svg';
+    fetch(src).then(r => r.text()).then(t => { box.innerHTML = t; }).catch(() => {});
+  });
+
+  addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.replace('#',''), 10);
+    if (!isNaN(n) && n >= 1 && n <= total && n - 1 !== idx) show(n - 1, false);
+  });
+
+  show(idx, false);
+})();
+</script>
+</body>
+</html>
