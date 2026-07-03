@@ -51,12 +51,13 @@
     padding: 58px 72px;
     display: flex; flex-direction: column; justify-content: center;
     opacity: 0; visibility: hidden;
-    transform: translateY(14px);
-    transition: opacity .45s ease, transform .45s ease, visibility .45s;
+    transform: translate(var(--enter-x, 0px), 14px) scale(.985);
+    transition: opacity .5s cubic-bezier(.2,.7,.3,1), transform .5s cubic-bezier(.2,.7,.3,1), visibility .5s;
     overflow: hidden;
     border-radius: 6px;
   }
-  .slide.active { opacity: 1; visibility: visible; transform: translateY(0); z-index: 2; }
+  .slide.active { opacity: 1; visibility: visible; transform: translate(0, 0) scale(1); z-index: 2; }
+  .particles { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .slide.dark { background: var(--dark-bg); color: var(--dark-text); }
   .slide.dark .eyebrow { color: var(--sq-blue); }
   .slide.dark h2 { color: var(--dark-text); }
@@ -98,15 +99,24 @@
 
   .brandline { display: flex; align-items: center; gap: 14px; margin-bottom: 34px; }
   .brandline .mslogo { width: 34px; height: 34px; }
+  .slide.active .brandline .mslogo span { opacity: 0; transform: scale(0) rotate(-90deg); animation: sq-pop .55s cubic-bezier(.2,.8,.3,1.35) forwards; }
+  .slide.active .brandline .mslogo span:nth-child(1) { animation-delay: .10s; }
+  .slide.active .brandline .mslogo span:nth-child(2) { animation-delay: .22s; }
+  .slide.active .brandline .mslogo span:nth-child(3) { animation-delay: .34s; }
+  .slide.active .brandline .mslogo span:nth-child(4) { animation-delay: .46s; }
+  @keyframes sq-pop { to { opacity: 1; transform: scale(1) rotate(0deg); } }
   .brandline .name { font-size: 24px; font-weight: 600; color: var(--dark-text); letter-spacing: -0.01em; }
   .brandline .divider { width: 1px; height: 26px; background: var(--dark-line); }
   .brandline .product { font-size: 16px; color: var(--dark-mute); font-weight: 400; }
 
   #s1 h1 { font-size: 66px; font-weight: 700; line-height: 1.06; letter-spacing: -0.02em; max-width: 950px; }
   #s1 h1 .grad {
-    background: linear-gradient(92deg, #4FC3F7 0%, #0078D4 45%, #7FBA00 100%);
+    background: linear-gradient(92deg, #4FC3F7 0%, #0078D4 35%, #7FBA00 65%, #4FC3F7 100%);
+    background-size: 220% 100%;
     -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 7s ease-in-out infinite;
   }
+  @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
   #s1 .sub { font-size: 21px; color: var(--dark-mute); margin-top: 22px; max-width: 760px; line-height: 1.5; }
   #s1 .meta { position: absolute; bottom: 54px; left: 72px; right: 72px; display: flex; justify-content: space-between; align-items: flex-end; }
   #s1 .team { font-size: 14.5px; color: var(--dark-mute); line-height: 1.7; }
@@ -124,7 +134,13 @@
   .card {
     background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 22px 24px; box-shadow: var(--shadow);
+    transition: transform .22s ease, box-shadow .22s ease;
   }
+  .card:hover, .page-card:hover, .demo-step:hover, .stage-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(16, 24, 40, 0.16);
+  }
+  .page-card, .demo-step, .stage-card { transition: transform .22s ease, box-shadow .22s ease; }
   .dark .card { background: var(--dark-card); border-color: var(--dark-line); box-shadow: none; }
   .card .k-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 8px; }
   .card h4 { font-size: 16.5px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; }
@@ -132,6 +148,8 @@
   .dark .card p { color: var(--dark-mute); }
 
   .stat { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .stat.pop { animation: stat-pop .45s cubic-bezier(.2,.8,.3,1.4); }
+  @keyframes stat-pop { 0% { transform: scale(1); } 45% { transform: scale(1.07); } 100% { transform: scale(1); } }
   .stat-label { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--ink-faint); margin-bottom: 10px; }
   .dark .stat-label { color: var(--dark-mute); }
 
@@ -268,6 +286,11 @@
     background: linear-gradient(135deg, #0078D4, #005A9E);
     color: #fff; border-radius: 16px; padding: 26px 34px; font-size: 22px; font-weight: 700;
     box-shadow: 0 14px 44px rgba(0,120,212,.42); transition: transform .18s ease, box-shadow .18s ease;
+    animation: cta-glow 2.6s ease-in-out infinite;
+  }
+  @keyframes cta-glow {
+    0%, 100% { box-shadow: 0 14px 44px rgba(0,120,212,.42); }
+    50% { box-shadow: 0 14px 60px rgba(0,164,239,.65); }
   }
   .demo-cta small { font-size: 13px; font-weight: 400; opacity: .85; }
   .demo-cta:hover { transform: translateY(-3px); box-shadow: 0 20px 54px rgba(0,120,212,.55); }
@@ -354,6 +377,7 @@
   <!-- 1 ▸ TITLE -->
   <section class="slide dark" id="s1">
     <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+    <canvas class="particles"></canvas>
     <div class="brandline" data-anim="1">
       <span class="mslogo"><span></span><span></span><span></span><span></span></span>
       <span class="name">Microsoft</span>
@@ -365,7 +389,7 @@
     <div class="meta">
       <div class="team" data-anim="4">
         <b>Corporate Capstone, Group Microsoft 3</b> · IE University, MBDS<br>
-        Bojana Blincevic · Nicolás Beard · Omar Ajlouni · Ricardo Liévano · Shadi Hamarneh
+        Bojana Belincevic · Nicolás Beard · Mateus Carneiro · Omar Ajlouni · Ricardo Liévano · Shadi Hamarneh
       </div>
       <div class="live-pill" data-anim="5"><span class="live-dot"></span> System live · refreshed daily at 08:00 UTC</div>
     </div>
@@ -375,7 +399,7 @@
   <section class="slide" id="s2">
     <div class="eyebrow" data-anim="1">The problem</div>
     <h2 data-anim="1">Winnable tenders are found too late, or not at all</h2>
-    <p class="lede" data-anim="2">Every public IT contract in the EU is announced in the open, on TED. In the last 30 days alone, 83,659 notices were published. The signal is public. The problem is scale and noise.</p>
+    <p class="lede" data-anim="2">Every public IT contract in the EU is announced in the open, on TED. In the last 30 days alone, 84,337 notices were published. The signal is public. The problem is scale and noise.</p>
     <div class="grid" data-anim="3">
       <div class="card"><div class="stat-label">Published on TED</div><div class="stat">~2,700<span style="font-size:20px; color:var(--ink-faint); font-weight:600;"> notices/day</span></div><p style="margin-top:8px;">Peaking above 4,000 on busy days, across every sector and every member state.</p></div>
       <div class="card"><div class="stat-label">Format</div><div class="stat" style="font-size:34px; line-height:1.2;">Deeply nested XML</div><p style="margin-top:8px;">eForms notices with multi-step reference chains. Not readable by humans at scale.</p></div>
@@ -528,12 +552,12 @@
     <div class="eyebrow" data-anim="1">The product</div>
     <h2 data-anim="1">Seven pages, one question each</h2>
     <div class="grid" data-anim="2">
-      <div class="page-card"><h4>Executive Overview</h4><div class="q">"What is the market?"</div><p>232,330 open tenders, 91 countries, live KPIs.</p></div>
+      <div class="page-card"><h4>Executive Overview</h4><div class="q">"What is the market?"</div><p>234,164 open tenders, 93 countries, live KPIs.</p></div>
       <div class="page-card"><h4>Opportunity Radar</h4><div class="q">"Which tenders should we chase?"</div><p>Every open IT lot, ranked by ML score.</p></div>
-      <div class="page-card"><h4>PIN Monitor</h4><div class="q">"Who is about to buy?"</div><p>631 pre-tender signals, mapped to product lines.</p></div>
+      <div class="page-card"><h4>PIN Monitor</h4><div class="q">"Who is about to buy?"</div><p>634 pre-tender signals, mapped to product lines.</p></div>
       <div class="page-card"><h4>Buyer Intelligence</h4><div class="q">"Who buys, and how?"</div><p>Top authorities, legal types, spend patterns.</p></div>
-      <div class="page-card"><h4>Supplier &amp; Awards</h4><div class="q">"Who is winning today?"</div><p>226,002 awards and the criteria behind them.</p></div>
-      <div class="page-card"><h4>Trends &amp; Forecasts</h4><div class="q">"How is the market moving?"</div><p>Daily volume, momentum, 30 and 90 day outlook.</p></div>
+      <div class="page-card"><h4>Supplier &amp; Awards</h4><div class="q">"Who is winning today?"</div><p>228,117 awards and the criteria behind them.</p></div>
+      <div class="page-card"><h4>Trends</h4><div class="q">"How is the market moving?"</div><p>Daily notice volume and market momentum over time.</p></div>
       <div class="page-card"><h4>Procurement Copilot</h4><div class="q">"Can I just ask?"</div><p>Natural language answers, grounded in Gold data.</p></div>
       <div class="page-card" style="background:linear-gradient(135deg,#0078D4,#005A9E); border:none;"><h4 style="color:#fff;">Built for Microsoft</h4><div class="q" style="color:rgba(255,255,255,.85);">Fluent design, product line mapping</div><p style="color:rgba(255,255,255,.85);">PINs and tenders tagged Azure, Dynamics, M365, or General IT.</p></div>
     </div>
@@ -580,9 +604,9 @@
           <div class="b"><span><b>Mapped to Microsoft:</b> every signal is tagged Azure, Dynamics, or General IT, with a pipeline expected value.</span></div>
         </div>
         <div class="kpi-row" data-anim="3">
-          <div class="kpi-mini"><div class="v">631</div><div class="l">Live PINs</div></div>
-          <div class="kpi-mini"><div class="v">445</div><div class="l">High priority</div></div>
-          <div class="kpi-mini"><div class="v">€10.9B</div><div class="l">Pipeline EV</div></div>
+          <div class="kpi-mini"><div class="v">634</div><div class="l">Live PINs</div></div>
+          <div class="kpi-mini"><div class="v">448</div><div class="l">High priority</div></div>
+          <div class="kpi-mini"><div class="v">€11.0B</div><div class="l">Pipeline EV</div></div>
         </div>
       </div>
     </div>
@@ -636,9 +660,9 @@
       <div data-anim="3" style="font-size:13.5px; color:var(--dark-mute); max-width:230px; line-height:1.55;">Scan to follow along on your own device while we present.</div>
     </div>
     <div class="demo-steps">
-      <div class="demo-step" data-anim="4"><div class="n">1</div><h4>Executive Overview</h4><p>The whole EU market on one screen: 232,330 open tenders across 91 countries, updated this morning.</p></div>
-      <div class="demo-step" data-anim="5"><div class="n">2</div><h4>Opportunity Radar + PIN Monitor</h4><p>Filter to a country, watch the ranking reorder, then jump to the buyers who are about to publish tenders.</p></div>
-      <div class="demo-step" data-anim="6"><div class="n">3</div><h4>Procurement Copilot</h4><p>Ask "who are the top 5 buyers by spend?" and watch it call a Gold layer tool and answer with real figures.</p></div>
+      <div class="demo-step" data-anim="4"><div class="n">1</div><h4>Procurement Copilot</h4><p>We start here: ask "who are the top 5 buyers by spend?" and watch it call a Gold layer tool and answer with real figures.</p></div>
+      <div class="demo-step" data-anim="5"><div class="n">2</div><h4>Executive Overview</h4><p>Then the whole EU market on one screen: 234,164 open tenders across 93 countries, updated this morning.</p></div>
+      <div class="demo-step" data-anim="6"><div class="n">3</div><h4>Opportunity Radar + PIN Monitor</h4><p>Filter to a country, watch the ranking reorder, then jump to the buyers who are about to publish tenders.</p></div>
     </div>
   </section>
 
@@ -646,14 +670,14 @@
   <section class="slide" id="s13">
     <div class="eyebrow" data-anim="1">Results</div>
     <h2 data-anim="1">A working system, not a prototype</h2>
-    <p class="lede" data-anim="2">Everything below is live in the deployed product today, measured directly from the Gold layer.</p>
+    <p class="lede" data-anim="2">Everything below is live in the deployed product today, measured directly from the Gold layer on July 3, 2026.</p>
     <div class="grid">
-      <div class="card counter-card" data-anim="3"><div class="stat-label">Open tenders tracked</div><div class="stat" data-count="232330">0</div><p>Every open Contract Notice in the EU, refreshed daily.</p></div>
-      <div class="card counter-card" data-anim="3"><div class="stat-label">Countries covered</div><div class="stat" data-count="91">0</div><p>All EU member states plus EEA and beyond.</p></div>
-      <div class="card counter-card" data-anim="4"><div class="stat-label">Awards analyzed</div><div class="stat" data-count="226002">0</div><p>Historical outcomes with bid counts, our training signal.</p></div>
-      <div class="card counter-card" data-anim="4"><div class="stat-label">Awarded value analyzed</div><div class="stat">€<span data-count="590">0</span>B</div><p>Contract value flowing through the awards layer.</p></div>
-      <div class="card counter-card" data-anim="5"><div class="stat-label">Notices, last 30 days</div><div class="stat" data-count="83659">0</div><p>Ingested, parsed, and scored without a single manual step.</p></div>
-      <div class="card counter-card" data-anim="5"><div class="stat-label">Pre-tender pipeline</div><div class="stat">€<span data-count="10.9" data-decimals="1">0</span>B</div><p>Expected value across 631 live PIN signals.</p></div>
+      <div class="card counter-card" data-anim="3"><div class="stat-label">Open tenders tracked</div><div class="stat" data-count="234164">0</div><p>Every open Contract Notice in the EU, refreshed daily.</p></div>
+      <div class="card counter-card" data-anim="3"><div class="stat-label">Countries covered</div><div class="stat" data-count="93">0</div><p>The EU's 27 member states, plus EEA and international buyers that publish on TED.</p></div>
+      <div class="card counter-card" data-anim="4"><div class="stat-label">Awards analyzed</div><div class="stat" data-count="228117">0</div><p>Historical outcomes with bid counts, our training signal.</p></div>
+      <div class="card counter-card" data-anim="4"><div class="stat-label">Awarded value analyzed</div><div class="stat">€<span data-count="591">0</span>B</div><p>Contract value flowing through the awards layer.</p></div>
+      <div class="card counter-card" data-anim="5"><div class="stat-label">Notices, last 30 days</div><div class="stat" data-count="84337">0</div><p>Ingested, parsed, and scored without a single manual step.</p></div>
+      <div class="card counter-card" data-anim="5"><div class="stat-label">Pre-tender pipeline</div><div class="stat">€<span data-count="11.0" data-decimals="1">0</span>B</div><p>Expected value across 634 live PIN signals.</p></div>
     </div>
     <p class="lede" data-anim="6" style="margin-top:24px; font-size:14.5px;"><b>The business outcome:</b> an analyst opens one page each morning and sees every open EU IT tender ranked by expected value. A task that previously was not done at all.</p>
   </section>
@@ -682,6 +706,7 @@
   <!-- 15 ▸ CLOSING -->
   <section class="slide dark" id="s15">
     <div class="orb o1"></div><div class="orb o2"></div>
+    <canvas class="particles"></canvas>
     <div class="brandline" data-anim="1" style="margin-bottom:26px;">
       <span class="mslogo"><span></span><span></span><span></span><span></span></span>
       <span class="name">Microsoft</span>
@@ -701,7 +726,7 @@
       </a>
       <div data-anim="6" style="font-size:14.5px; color:var(--dark-mute); line-height:1.7; margin-left:10px;">
         <b style="color:var(--dark-text);">Thank you. Questions welcome.</b><br>
-        Bojana · Nicolás · Omar · Ricardo · Shadi
+        Bojana · Nicolás · Mateus · Omar · Ricardo · Shadi
       </div>
     </div>
   </section>
@@ -748,12 +773,72 @@
         const eased = 1 - Math.pow(1 - p, 3);
         el.textContent = (target * eased).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         if (p < 1) requestAnimationFrame(tick);
+        else {
+          const stat = el.closest('.stat') || el;
+          stat.classList.add('pop');
+          setTimeout(() => stat.classList.remove('pop'), 600);
+        }
       })(t0);
     });
   }
 
+  // ── particle network on dark hero slides ──
+  const MS_COLORS = ['#0078D4', '#7FBA00', '#FFB900', '#F25022', '#00A4EF'];
+  function makeParticles(canvas) {
+    const ctx = canvas.getContext('2d');
+    let w = 0, h = 0, pts = [], raf = null;
+    function resize() {
+      w = canvas.width = Math.max(canvas.offsetWidth, 640) * 2;
+      h = canvas.height = Math.max(canvas.offsetHeight, 360) * 2;
+    }
+    function seed() {
+      pts = Array.from({ length: 44 }, () => ({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - .5) * .34, vy: (Math.random() - .5) * .34,
+        r: 2 + Math.random() * 3.2,
+        c: MS_COLORS[Math.random() * MS_COLORS.length | 0],
+      }));
+    }
+    const LINK = 240 * 240;
+    function step() {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of pts) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+      }
+      ctx.lineWidth = 1;
+      for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+        const a = pts[i], b = pts[j], dx = a.x - b.x, dy = a.y - b.y, d = dx * dx + dy * dy;
+        if (d < LINK) {
+          ctx.strokeStyle = 'rgba(255,255,255,' + (0.09 * (1 - d / LINK)).toFixed(3) + ')';
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+      for (const p of pts) {
+        ctx.globalAlpha = .7; ctx.fillStyle = p.c;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(step);
+    }
+    resize(); seed();
+    addEventListener('resize', () => { resize(); seed(); });
+    return {
+      start() { if (!raf) { resize(); raf = requestAnimationFrame(step); } },
+      stop() { if (raf) { cancelAnimationFrame(raf); raf = null; } },
+    };
+  }
+  const particleSystems = new Map();
+  document.querySelectorAll('.particles').forEach(c => particleSystems.set(c.closest('.slide'), makeParticles(c)));
+  function syncParticles(activeSlide) {
+    particleSystems.forEach((sys, slide) => slide === activeSlide ? sys.start() : sys.stop());
+  }
+
   function show(n, pushHash = true) {
-    idx = Math.max(0, Math.min(total - 1, n));
+    const bounded = Math.max(0, Math.min(total - 1, n));
+    stage.style.setProperty('--enter-x', bounded >= idx ? '34px' : '-34px');
+    idx = bounded;
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
     document.getElementById('counter').textContent = (idx + 1) + ' / ' + total;
     document.getElementById('progress').style.width = ((idx + 1) / total * 100) + '%';
@@ -764,6 +849,7 @@
       el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
     });
     if (active.querySelector('[data-count]')) setTimeout(() => animateCounters(active), 350);
+    syncParticles(active);
   }
 
   function next() { show(idx + 1); }
