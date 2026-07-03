@@ -58,6 +58,29 @@
   }
   .slide.active { opacity: 1; visibility: visible; transform: translate(0, 0) scale(1); z-index: 2; }
   .particles { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  /* corner Microsoft brand mark, injected on every slide */
+  .corner-brand { position: absolute; top: 24px; right: 30px; display: flex; align-items: center; gap: 8px; z-index: 6; opacity: .9; }
+  .corner-brand .mslogo { width: 15px; height: 15px; }
+  .corner-brand .word { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+  .dark .corner-brand .word { color: var(--dark-mute); }
+
+  /* interactive product tour */
+  .tour-wrap { display: grid; grid-template-columns: 330px 1fr; gap: 34px; align-items: start; margin-top: 22px; }
+  .tour-tabs { display: grid; gap: 8px; }
+  .tour-tab {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    border: 1px solid var(--line); background: var(--paper); border-radius: 10px;
+    padding: 11px 16px; font: inherit; font-size: 14px; font-weight: 600; color: var(--ink-soft);
+    cursor: pointer; transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+  }
+  .tour-tab .dot { width: 8px; height: 8px; border-radius: 2px; background: var(--line); flex-shrink: 0; transition: background .18s ease; }
+  .tour-tab:hover { border-color: var(--ms-blue); color: var(--ink); transform: translateX(2px); }
+  .tour-tab.active { border-color: var(--ms-blue); background: #EFF6FC; color: var(--ms-blue-dark); }
+  .tour-tab.active .dot { background: var(--ms-blue); }
+  .tour-note { margin-top: 14px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
+  .tour-stage img { transition: opacity .25s ease; }
+  .tour-stage { max-width: 700px; }
   .slide.dark { background: var(--dark-bg); color: var(--dark-text); }
   .slide.dark .eyebrow { color: var(--sq-blue); }
   .slide.dark h2 { color: var(--dark-text); }
@@ -559,7 +582,23 @@
       <div class="page-card"><h4>Supplier &amp; Awards</h4><div class="q">"Who is winning today?"</div><p>228,117 awards and the criteria behind them.</p></div>
       <div class="page-card"><h4>Trends</h4><div class="q">"How is the market moving?"</div><p>Daily notice volume and market momentum over time.</p></div>
       <div class="page-card"><h4>Procurement Copilot</h4><div class="q">"Can I just ask?"</div><p>Natural language answers, grounded in Gold data.</p></div>
-      <div class="page-card" style="background:linear-gradient(135deg,#0078D4,#005A9E); border:none;"><h4 style="color:#fff;">Built for Microsoft</h4><div class="q" style="color:rgba(255,255,255,.85);">Fluent design, product line mapping</div><p style="color:rgba(255,255,255,.85);">PINs and tenders tagged Azure, Dynamics, M365, or General IT.</p></div>
+      <div class="page-card" style="background:linear-gradient(135deg,#0078D4,#005A9E); border:none;"><h4 style="color:#fff;">Built for Microsoft</h4><div class="q" style="color:rgba(255,255,255,.85);">"Where do we fit?"</div><p style="color:rgba(255,255,255,.85);">PINs and tenders tagged Azure, Dynamics, M365, or General IT.</p></div>
+    </div>
+  </section>
+
+  <!-- 9 ▸ PRODUCT TOUR (interactive) -->
+  <section class="slide" id="stour">
+    <div class="eyebrow" data-anim="1">The product, live</div>
+    <h2 data-anim="1">Real pixels, not mockups. Click through.</h2>
+    <div class="tour-wrap">
+      <div data-anim="2">
+        <div class="tour-tabs" id="tour-tabs"></div>
+        <p class="tour-note">Every page is a screenshot of the deployed dashboard, taken from the same app you can open at the live link. The tour cycles on its own, or click any page.</p>
+      </div>
+      <div class="browser tour-stage" data-anim="3">
+        <div class="bar"><i></i><i></i><i></i><span class="url" id="tour-url">procurement-intelligence.streamlit.app</span></div>
+        <img id="tour-img" src="assets/executive_overview.jpg" alt="Dashboard page screenshot">
+      </div>
     </div>
   </section>
 
@@ -835,6 +874,50 @@
     particleSystems.forEach((sys, slide) => slide === activeSlide ? sys.start() : sys.stop());
   }
 
+  // ── corner Microsoft brand mark on every slide without the big brandline ──
+  slides.forEach(s => {
+    if (s.querySelector('.brandline')) return;
+    const el = document.createElement('div');
+    el.className = 'corner-brand';
+    el.innerHTML = '<span class="mslogo"><span></span><span></span><span></span><span></span></span><span class="word">Microsoft</span>';
+    s.appendChild(el);
+  });
+
+  // ── interactive product tour ──
+  const TOUR = [
+    ['Executive Overview', 'assets/executive_overview.jpg'],
+    ['Opportunity Radar', 'assets/opportunity_radar.jpg'],
+    ['PIN Monitor', 'assets/pin_monitor.jpg'],
+    ['Buyer Intelligence', 'assets/buyer_intelligence.jpg'],
+    ['Supplier & Awards', 'assets/supplier_awards.jpg'],
+    ['Trends', 'assets/trends.jpg'],
+  ];
+  TOUR.forEach(([, src]) => { const im = new Image(); im.src = src; });
+  const tourSlide = document.getElementById('stour');
+  const tourImg = document.getElementById('tour-img');
+  const tourUrl = document.getElementById('tour-url');
+  const tourTabsEl = document.getElementById('tour-tabs');
+  let tourIdx = 0, tourTimer = null;
+  TOUR.forEach(([label], i) => {
+    const b = document.createElement('button');
+    b.className = 'tour-tab' + (i === 0 ? ' active' : '');
+    b.innerHTML = '<span class="dot"></span>' + label;
+    b.onclick = () => { stopTour(); showTour(i); };
+    tourTabsEl.appendChild(b);
+  });
+  function showTour(i) {
+    tourIdx = i;
+    tourTabsEl.querySelectorAll('.tour-tab').forEach((b, j) => b.classList.toggle('active', j === i));
+    tourImg.style.opacity = '0';
+    setTimeout(() => {
+      tourImg.src = TOUR[i][1];
+      tourUrl.textContent = 'procurement-intelligence.streamlit.app · ' + TOUR[i][0];
+      tourImg.style.opacity = '1';
+    }, 220);
+  }
+  function startTour() { if (!tourTimer) tourTimer = setInterval(() => showTour((tourIdx + 1) % TOUR.length), 3600); }
+  function stopTour() { clearInterval(tourTimer); tourTimer = null; }
+
   function show(n, pushHash = true) {
     const bounded = Math.max(0, Math.min(total - 1, n));
     stage.style.setProperty('--enter-x', bounded >= idx ? '34px' : '-34px');
@@ -850,6 +933,7 @@
     });
     if (active.querySelector('[data-count]')) setTimeout(() => animateCounters(active), 350);
     syncParticles(active);
+    if (active === tourSlide) startTour(); else stopTour();
   }
 
   function next() { show(idx + 1); }
