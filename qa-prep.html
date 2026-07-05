@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q&amp;A Prep | TED Procurement Intelligence</title>
+<style>
+  :root { --blue:#0078D4; --ink:#201F1E; --soft:#484644; --line:#E1DFDD; --bg:#FFFFFF; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif; color:var(--ink); background:#F5F6F8; line-height:1.55; }
+  .page { max-width:860px; margin:0 auto; padding:48px 32px 80px; }
+  header { margin-bottom:36px; }
+  .logo { display:inline-grid; grid-template-columns:repeat(2,1fr); gap:2px; width:22px; height:22px; vertical-align:-3px; margin-right:10px; }
+  .logo span:nth-child(1){background:#F25022;} .logo span:nth-child(2){background:#7FBA00;}
+  .logo span:nth-child(3){background:#00A4EF;} .logo span:nth-child(4){background:#FFB900;}
+  h1 { font-size:30px; letter-spacing:-0.01em; }
+  .sub { color:var(--soft); margin-top:8px; font-size:15px; }
+  .warn { background:#FFF4CE; border:1px solid #E8C766; border-radius:10px; padding:12px 18px; font-size:13.5px; margin-top:18px; }
+  h2 { font-size:19px; margin:40px 0 6px; color:var(--blue); }
+  .owner { font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#797775; margin-bottom:14px; }
+  .qa { background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin-bottom:14px; page-break-inside:avoid; }
+  .q { font-weight:700; font-size:15.5px; margin-bottom:8px; }
+  .a { font-size:14px; color:var(--soft); }
+  .a b { color:var(--ink); }
+  .tip { font-size:12.5px; color:#8A6A00; background:#FFF9E6; border-radius:6px; padding:6px 10px; margin-top:10px; display:inline-block; }
+  @media print { body{background:#fff;} .page{padding:20px;} .qa{border-color:#ccc;} }
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <h1><span class="logo"><span></span><span></span><span></span><span></span></span>Q&amp;A Preparation Guide</h1>
+  <p class="sub">TED Procurement Intelligence · Group Microsoft 3 · 10 minute jury Q&amp;A · July 2026</p>
+  <div class="warn"><b>Team prep link.</b> Not linked from the deck; share this URL only with the team. Suggested owner answers first; anyone can add one sentence after. Keep answers under 45 seconds.</div>
+</header>
+
+<h2>Data &amp; Architecture</h2>
+<div class="owner">Primary: Nico and Ricardo</div>
+
+<div class="qa"><div class="q">Why 93 countries, when the EU has 27 member states?</div>
+<div class="a">TED is the EU's official journal, but it also carries notices from EEA countries and international organizations, plus buyers outside the EU who publish there voluntarily or under trade agreements. The 27 member states dominate the volume; the rest is EEA and international coverage. We treat that as a feature: wider market visibility at zero extra cost.</div></div>
+
+<div class="qa"><div class="q">The total estimated value shows about 1.4 trillion euros. Is that credible?</div>
+<div class="a">It is the raw sum of <b>buyer reported</b> estimates on open notices, and we present it as exactly that. It includes multi-year framework agreements, some non-EUR values passing through unconverted, and occasional buyer typos. We surface it as a market-scale indicator, not an addressable-revenue claim, and the deck's critical analysis slide states this limitation openly. Cleaning and currency-normalising values is on the roadmap.</div></div>
+
+<div class="qa"><div class="q">How do you handle notices being republished or corrected?</div>
+<div class="a">A two layer deduplication strategy in the Silver layer using window functions: we keep the latest version of each notice by publication identifier, then deduplicate lots beneath them. Raw XML stays immutable in the source layer, so if the dedup logic ever changes, we can replay history and rebuild Silver and Gold from scratch.</div></div>
+
+<div class="qa"><div class="q">What happens if a daily run fails halfway?</div>
+<div class="a">Each run is checkpointed on source file and idempotent. If a task fails, the next run picks up exactly the unprocessed files; nothing is double-counted because Bronze ingestion is keyed on the file identity. We can also replay any historical day since raw files are never mutated.</div></div>
+
+<div class="qa"><div class="q">Why Databricks instead of Microsoft Fabric, given this is for Microsoft?</div>
+<div class="a">Honest answer: maturity and speed for a five month capstone. Databricks gave us medallion, dbt, ML training, model serving from a Volume, and serverless job orchestration in one place. But the design is deliberately portable: Delta tables, dbt models, and Python. Moving to Fabric is a lift-and-shift of the same patterns, and we would recommend exactly that if Microsoft adopts the system.</div></div>
+
+<div class="qa"><div class="q">What does the daily pipeline cost to run?</div>
+<div class="a">It runs on serverless job compute once a day for a single incremental batch, plus a small SQL warehouse for the dashboard. The daily increment is a few thousand notices, so compute cost is in the euros-per-month range, not thousands. The design scales the same way: incremental, not full reloads.</div></div>
+
+<h2>Machine Learning</h2>
+<div class="owner">Primary: Bojana</div>
+
+<div class="qa"><div class="q">Why is the number of bids a valid proxy for winnability?</div>
+<div class="a">Fewer bidders means less competition, which mechanically raises any bidder's chance of winning; it also correlates with specialised requirements where a strong vendor fit matters more. Crucially, it is the only outcome signal that is public at EU scale: award notices publish it for hundreds of thousands of contracts. It gets us a useful ranking on day one, with zero proprietary data.</div></div>
+
+<div class="qa"><div class="q">How did you validate the model? What is its accuracy?</div>
+<div class="a">We train on historical award lots with known bid counts, hold out a test split, and evaluate with a full classification report per class (Low, Medium, High competition). The exact metrics are reproducible from the public repo. But we deliberately do not lead with an accuracy number, because the product claim is a <b>ranking</b>, not a calibrated probability, and we say so on the slide.</div></div>
+
+<div class="qa"><div class="q">Where do the 0.50 / 0.30 / 0.20 weights come from?</div>
+<div class="a">They are business informed heuristics: competition is the strongest signal so it gets half the weight, buyer relationship second, product fit third. They are a starting point by design. Once Microsoft records real bid decisions against scored tenders, the whole composite can be learned end to end instead of weighted by hand; the architecture already accommodates that retraining.</div></div>
+
+<div class="qa"><div class="q">How do you define Low, Medium, High competition?</div>
+<div class="a">From bid counts on historical awards: one or two bidders is Low, three to seven is Medium, eight or more is High. XGBoost then predicts that class for open tenders from eight features: log value, CPV relevance, buyer affinity, CPV division and group, country, procedure type, and buyer legal type.</div></div>
+
+<div class="qa"><div class="q">Explain the buyer affinity score.</div>
+<div class="a">Per contracting authority, it blends how relevant their historical purchases are to Microsoft's portfolio (70 percent, weighted by recency with a 180 day half life, so recent behaviour counts double) with their share of open procedures (30 percent), which signals accessibility to new suppliers. New buyers without history get a neutral default rather than zero.</div></div>
+
+<div class="qa"><div class="q">Could an LLM have done the scoring instead of XGBoost?</div>
+<div class="a">Not economically or reliably at this scale: we score hundreds of thousands of lots daily, need reproducible numbers, and train on tabular features. Gradient boosting is the right tool for tabular prediction; the LLM earns its place in the copilot, where language understanding is the actual problem.</div></div>
+
+<h2>Dashboard &amp; Product</h2>
+<div class="owner">Primary: Shadi and Omar</div>
+
+<div class="qa"><div class="q">Why Streamlit and not Power BI?</div>
+<div class="a">Because the product is a dashboard <b>plus</b> a conversational agent, and Streamlit is the only option that hosts both in one Python app with full control. We knowingly gave up enterprise SSO and mobile-first layout, which are not critical for a focused analyst team. In a Microsoft production setting, the Gold layer could feed Power BI in parallel; the serving tables are tool agnostic.</div></div>
+
+<div class="qa"><div class="q">How fresh is the data I am seeing right now?</div>
+<div class="a">The pipeline runs every morning at 08:00 UTC and the dashboard reads the Gold tables live through a Databricks SQL warehouse. So everything reflects this morning's ingestion. The numbers in our slides are date-stamped July 3 for that reason; they move daily by design.</div></div>
+
+<div class="qa"><div class="q">Who is the intended user, concretely?</div>
+<div class="a">A public sector sales or partner analyst at Microsoft (or a Microsoft partner) covering EU tenders. Morning routine: open Opportunity Radar, scan the top ranked lots, check PIN Monitor for accounts about to buy, and brief the relevant account teams. What used to be unstructured browsing becomes a ten minute triage.</div></div>
+
+<div class="qa"><div class="q">What is a PIN and why does it matter commercially?</div>
+<div class="a">A Prior Information Notice: a buyer announcing an intended procurement months before the tender opens. That window is where vendors shape requirements and build relationships. We track 634 live PINs, flag 448 as high priority (strong affinity, value above €500K), and map each to a product line: Azure, Dynamics, or general IT. That is an eleven billion euro pre-tender pipeline.</div></div>
+
+<h2>Copilot / AI Agent</h2>
+<div class="owner">Primary: Mateus</div>
+
+<div class="qa"><div class="q">How do you prevent the LLM from hallucinating numbers?</div>
+<div class="a">Three layers. First, the model cannot write SQL at all: it chooses among nine pre-built, parameterised query functions, so arbitrary queries are structurally impossible. Second, the system prompt forbids inventing figures; answers are composed only from tool results. Third, both the copilot and the dashboard read the same Gold tables, so any number it quotes can be cross-checked on screen in seconds.</div></div>
+
+<div class="qa"><div class="q">Which model powers the copilot, and why not Azure OpenAI?</div>
+<div class="a">A hosted Llama model through an OpenAI-compatible API, chosen because it is free tier and fast, which fits a capstone budget. Because the tool-calling interface follows the OpenAI function schema standard, swapping the backend to Azure OpenAI is a configuration change, not a redesign, and that is what we would do in production at Microsoft.</div></div>
+
+<div class="qa"><div class="q">What happens when someone asks it something off topic or malicious?</div>
+<div class="a">We stress tested exactly that: off topic questions get a polite refusal grounded in its scope; malformed tool calls and API rate limits are caught and retried or explained; out-of-range years return an honest "no data" instead of a guess. And since it has no SQL capability and only nine read-only tools, prompt injection cannot reach the warehouse.</div></div>
+
+<h2>Business Value &amp; Strategy</h2>
+<div class="owner">Anyone; Omar closes</div>
+
+<div class="qa"><div class="q">How would you quantify the business impact?</div>
+<div class="a">Two mechanisms. Coverage: analysts currently sample a feed of ~2,700 daily notices manually, so relevant tenders get missed; we guarantee 100 percent coverage of the IT scope. Timing: PINs surface demand months early, when win probability is shapeable. Even a single additional win from the €11B pre-tender pipeline pays for the system many times over. The precise uplift becomes measurable the moment bid decisions are recorded against our scores, which is step one of the roadmap.</div></div>
+
+<div class="qa"><div class="q">What would you build next with six more months?</div>
+<div class="a">Three things, in order. Calibrate the model with Microsoft's real win and loss outcomes. Add an NLP relevance scorer over titles and descriptions to catch IT tenders filed under generic CPV codes, our main coverage gap. And port the medallion to Fabric with SSO for enterprise rollout. Nice-to-haves after that: currency normalisation, email alerting, and CRM integration for the PIN pipeline.</div></div>
+
+<div class="qa"><div class="q">Could a competitor just build the same thing?</div>
+<div class="a">The data is public, so yes, the ingestion is replicable. The defensible part is what compounds privately: once a company feeds its own bid history in, the rankings calibrate to <b>its</b> win patterns and the system gets better every week in a way competitors cannot copy. Open data in, proprietary advantage out.</div></div>
+
+<div class="qa"><div class="q">Is there any legal or GDPR concern with this data?</div>
+<div class="a">TED is official EU open data, published for exactly this purpose, and reuse is permitted. The entities are organizations, not private individuals; contact persons appearing in notices are already public by law. We store the data as published and add derived analytics on top.</div></div>
+
+<div class="qa"><div class="q">If the jury finds a strange number on the live dashboard during Q&amp;A?</div>
+<div class="a">Own it calmly: values are buyer reported and we display them transparently rather than silently "fixing" data. Point to the critical analysis slide: known limitations, each with a designed path. Honesty about data quality is a feature of the system, not a weakness of the team.</div>
+<span class="tip">General tactic: never bluff a number. "That figure is buyer reported, and here is how we would clean it" beats an invented statistic every time.</span></div>
+
+</div>
+</body>
+</html>
